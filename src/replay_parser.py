@@ -25,16 +25,16 @@ class ReplayParser:
                 player_name=replay.player_name,
                 score=replay.score,
                 max_combo=replay.max_combo,
-                count_300=replay.count_300,
-                count_100=replay.count_100,
-                count_50=replay.count_50,
-                count_miss=replay.count_miss,
-                count_geki=replay.count_geki,
-                count_katu=replay.count_katu,
+                count_300=replay.n300,
+                count_100=replay.n100,
+                count_50=replay.n50,
+                count_miss=replay.nmiss,
+                count_geki=replay.ngeki,
+                count_katu=replay.nkatu,
                 mods=replay.mods,
                 timestamp=replay.timestamp,
-                beatmap_md5=replay.beatmap_hash,
-                player_id=replay.player_id
+                beatmap_md5=replay.map_md5,
+                player_id=0  # osupyparser не предоставляет player_id
             )
             
             logger.info(f"Успешно распарсен реплей: {filepath.name}")

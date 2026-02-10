@@ -1108,8 +1108,24 @@ class OsuReplayConverterApp:
             return
         
         if not self.current_beatmap_attributes:
-            messagebox.showwarning("Внимание", "Не найдены атрибуты карты!")
-            return
+            messagebox.showwarning(
+                "Внимание", 
+                "Не найдены атрибуты карты. Будут использованы стандартные значения."
+            )
+            # Используем стандартные значения
+            self.current_beatmap_attributes = BeatmapAttributes(
+                beatmap_id=0,
+                aim=2.5,
+                speed=2.5,
+                od=8.0,
+                ar=8.0,
+                max_combo=1000,
+                num_sliders=50,
+                num_spinners=2,
+                num_hit_circles=200,
+                total_hits=252,
+                beatmap_md5=self.current_replay.beatmap_md5
+            )
         
         output_path = Path(self.render_output_path.get())
         if not output_path:
