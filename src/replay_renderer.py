@@ -46,7 +46,7 @@ class ReplayRenderer:
         
         # Для демонстрации просто создаем файл-заглушку
         try:
-            self._create_dummy_video(output_path)
+            self._create_dummy_video(output_path, replay_data)
             
             # Сохранение информации о рендере
             self._save_render_info(replay_data, skin_name, output_path)
@@ -86,17 +86,104 @@ class ReplayRenderer:
         
         return command
     
-    def _create_dummy_video(self, output_path: Path):
-        """Создание заглушки видео (для демонстрации)"""
-        # В реальном приложении здесь будет реальный рендеринг
-        # Создаем текстовый файл с информацией о видео
-        with open(output_path.with_suffix('.txt'), 'w') as f:
-            f.write("Это заглушка для рендеринга видео\n")
-            f.write(f"Файл: {output_path.name}\n")
-            f.write("В реальном приложении здесь будет видеофайл\n")
+    def _create_dummy_video(self, output_path: Path, replay_data):
+        """Создание видео с демонстрацией реплея"""
+        import os
+        import cv2
+        import numpy as np
+        import subprocess
+        import tempfile
         
-        # Или создаем минимальный видеофайл с помощью ffmpeg
-        # subprocess.run(['ffmpeg', '-f', 'lavfi', '-i', 'color=c=black:s=1920x1080:d=5', output_path])
+        # Добавляем FFmpeg в PATH (если не найден в стандартном пути)
+        ffmpeg_paths = [
+            # Путь к FFmpeg из winget
+            os.path.join(os.environ['LOCALAPPDATA'], 'Microsoft', 'WinGet', 'Packages', 
+                       'Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe', 'ffmpeg-8.0.1-full_build', 'bin'),
+            # Стандартные пути
+            'C:\\ffmpeg\\bin',
+            'C:\\Program Files\\ffmpeg\\bin',
+            'C:\\Program Files (x86)\\ffmpeg\\bin'
+        ]
+        
+        for ffmpeg_path in ffmpeg_paths:
+            if os.path.exists(ffmpeg_path) and ffmpeg_path not in os.environ['PATH']:
+                os.environ['PATH'] = ffmpeg_path + os.pathsep + os.environ['PATH']
+        
+        try:
+            # Параметры видео
+            width = self.render_settings.get('resolution_width', 1920)
+            height = self.render_settings.get('resolution_height', 1080)
+            fps = self.render_settings.get('fps', 60)
+            duration = 5  # секунд
+            
+            # Создаем временный файл для хранения кадров в формате rawvideo
+            temp_file = tempfile.NamedTemporaryFile(suffix='.raw', delete=False)
+            temp_file.close()
+            
+            # Создаем черный фон
+            frame = np.zeros((height, width, 3), dtype=np.uint8)
+            
+            # Рисуем информацию о реплее
+            font = cv2.FONT_HERSHEY_SIMPLEX
+            text = f"Реплей: {replay_data.player_name}"
+            cv2.putText(frame, text, (50, 100), font, 2, (255, 255, 255), 3)
+            
+            text = f"Счет: {replay_data.score}"
+            cv2.putText(frame, text, (50, 200), font, 1.5, (255, 255, 255), 2)
+            
+            text = f"Combo: {replay_data.max_combo}"
+            cv2.putText(frame, text, (50, 300), font, 1.5, (255, 255, 255), 2)
+            
+            # Рисуем пример движения курсора (для демонстрации)
+            for i in range(int(duration * fps)):
+                # Создаем копию кадра
+                current_frame = frame.copy()
+                
+                # Двигаем курсор по синусоиде
+                x = int(width // 2 + (width // 4) * np.sin(i * 0.1))
+                y = int(height // 2 + (height // 4) * np.sin(i * 0.05))
+                
+                # Рисуем курсор
+                cv2.circle(current_frame, (x, y), 10, (0, 255, 255), -1)
+                cv2.circle(current_frame, (x, y), 15, (0, 255, 255), 2)
+                
+                # Добавляем кадр в временный файл
+                current_frame = cv2.resize(current_frame, (width, height))
+                with open(temp_file.name, 'ab') as f:
+                    f.write(current_frame.tobytes())
+            
+            # Кодируем видео с помощью FFmpeg
+            cmd = [
+                'ffmpeg',
+                '-f', 'rawvideo',
+                '-vcodec', 'rawvideo',
+                '-s', f'{width}x{height}',
+                '-pix_fmt', 'bgr24',
+                '-r', str(fps),
+                '-i', temp_file.name,
+                '-vcodec', 'libx264',
+                '-tune', 'animation',
+                '-pix_fmt', 'yuv420p',
+                '-r', str(fps),
+                str(output_path)
+            ]
+            
+            subprocess.run(cmd, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            
+            logger.info(f"Видео успешно создано: {output_path}")
+            
+        except FileNotFoundError:
+            logger.error("FFmpeg не найден. Убедитесь, что ffmpeg установлен и доступен в PATH.")
+            with open(output_path.with_suffix('.txt'), 'w') as f:
+                f.write("Это заглушка для рендеринга видео\n")
+                f.write(f"Файл: {output_path.name}\n")
+                f.write("FFmpeg не найден. Установите ffmpeg для создания настоящего видео.\n")
+        except Exception as e:
+            logger.error(f"Ошибка при создании видео: {e}")
+            with open(output_path.with_suffix('.txt'), 'w') as f:
+                f.write("Это заглушка для рендеринга видео\n")
+                f.write(f"Файл: {output_path.name}\n")
+                f.write(f"Ошибка при создании видео: {str(e)}\n")
     
     def _save_render_info(self, replay_data: ReplayData, skin_name: str, output_path: Path):
         """Сохранение информации о рендере"""
