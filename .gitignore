@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+osu_replay_converter.log
+
+# Database
+*.db
+*.sqlite3
+
+# Configuration
+config.json
+
+# Skins directory
+src/skins/
+.osu_replay_converter/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# Video output
+*.mp4
+*.avi
+*.mov
+*.webm

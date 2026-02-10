@@ -1,0 +1,3 @@
+ossapi>=3.6.0
+OsuPyParser>=1.0.7
+Pillow>=10.0.0
