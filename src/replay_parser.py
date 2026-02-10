@@ -37,6 +37,9 @@ class ReplayParser:
                 player_id=0  # osupyparser не предоставляет player_id
             )
             
+            # Добавляем фреймы реплея
+            replay_data.frames = replay.frames
+            
             logger.info(f"Успешно распарсен реплей: {filepath.name}")
             return replay_data
             

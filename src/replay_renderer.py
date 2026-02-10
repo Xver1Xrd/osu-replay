@@ -110,54 +110,128 @@ class ReplayRenderer:
                 os.environ['PATH'] = ffmpeg_path + os.pathsep + os.environ['PATH']
         
         try:
-            # Параметры видео
-            width = self.render_settings.get('resolution_width', 1920)
-            height = self.render_settings.get('resolution_height', 1080)
+            # Параметры видео (стандартное разрешение osu!)
+            width = 1024
+            height = 768
             fps = self.render_settings.get('fps', 60)
-            duration = 5  # секунд
             
             # Создаем временный файл для хранения кадров в формате rawvideo
             temp_file = tempfile.NamedTemporaryFile(suffix='.raw', delete=False)
             temp_file.close()
             
-            # Создаем черный фон
-            frame = np.zeros((height, width, 3), dtype=np.uint8)
+            # Загружаем скины для рендеринга
+            cursor_image = None
+            hitcircle_image = None
+            
+            # Путь к текущему скину
+            skin_info = self.skin_manager.skins.get(self.render_settings.get('default_skin', 'osu!default'))
+            
+            if skin_info and skin_info.path.exists():
+                # Загружаем изображение курсора
+                cursor_path = skin_info.path / 'cursor.png'
+                if cursor_path.exists():
+                    cursor_image = cv2.imread(str(cursor_path), cv2.IMREAD_UNCHANGED)
+                
+                # Загружаем изображение хит-круга
+                hitcircle_path = skin_info.path / 'hitcircle.png'
+                if hitcircle_path.exists():
+                    hitcircle_image = cv2.imread(str(hitcircle_path), cv2.IMREAD_UNCHANGED)
+            
+            # Заполняем фон белым цветом (как в osu!)
+            frame = np.ones((height, width, 3), dtype=np.uint8) * 255
+            
+            # Рисуем сетку для имитации игрового поля
+            cv2.line(frame, (width//2, 0), (width//2, height), (200, 200, 200), 1)
+            cv2.line(frame, (0, height//2), (width, height//2), (200, 200, 200), 1)
             
             # Рисуем информацию о реплее
             font = cv2.FONT_HERSHEY_SIMPLEX
             text = f"Реплей: {replay_data.player_name}"
-            cv2.putText(frame, text, (50, 100), font, 2, (255, 255, 255), 3)
+            cv2.putText(frame, text, (50, 50), font, 1, (0, 0, 0), 2)
             
             text = f"Счет: {replay_data.score}"
-            cv2.putText(frame, text, (50, 200), font, 1.5, (255, 255, 255), 2)
+            cv2.putText(frame, text, (50, 80), font, 0.8, (0, 0, 0), 2)
             
             text = f"Combo: {replay_data.max_combo}"
-            cv2.putText(frame, text, (50, 300), font, 1.5, (255, 255, 255), 2)
+            cv2.putText(frame, text, (50, 110), font, 0.8, (0, 0, 0), 2)
             
-            # Рисуем пример движения курсора (для демонстрации)
-            for i in range(int(duration * fps)):
-                # Создаем копию кадра
-                current_frame = frame.copy()
+            text = f"300: {replay_data.count_300} 100: {replay_data.count_100} 50: {replay_data.count_50} Miss: {replay_data.count_miss}"
+            cv2.putText(frame, text, (50, 140), font, 0.6, (0, 0, 0), 2)
+            
+            # Рисуем движения курсора из реального реплея
+            if hasattr(replay_data, 'frames') and len(replay_data.frames) > 0:
+                # Используем все доступные фреймы
+                total_time = 0
+                for frame_data in replay_data.frames:
+                    total_time += frame_data.delta
                 
-                # Двигаем курсор по синусоиде
-                x = int(width // 2 + (width // 4) * np.sin(i * 0.1))
-                y = int(height // 2 + (height // 4) * np.sin(i * 0.05))
+                frame_count = len(replay_data.frames)
                 
-                # Рисуем курсор
-                cv2.circle(current_frame, (x, y), 10, (0, 255, 255), -1)
-                cv2.circle(current_frame, (x, y), 15, (0, 255, 255), 2)
+                for i in range(frame_count):
+                    current_frame = frame.copy()
+                    frame_data = replay_data.frames[i]
+                    
+                    x = int(frame_data.x * width / 512)  # Преобразуем координаты osu! в пиксели
+                    y = int(frame_data.y * height / 384)
+                    
+                    # Рисуем курсор
+                    if cursor_image is not None:
+                        scale = 0.5
+                        resized = cv2.resize(cursor_image, (0, 0), fx=scale, fy=scale)
+                        h, w, _ = resized.shape
+                        y_pos = y - h//2
+                        x_pos = x - w//2
+                        
+                        if y_pos > 0 and y_pos + h < height and x_pos > 0 and x_pos + w < width:
+                            alpha = resized[:, :, 3] / 255.0
+                            for c in range(3):
+                                current_frame[y_pos:y_pos+h, x_pos:x_pos+w, c] = alpha * resized[:, :, c] + (1 - alpha) * current_frame[y_pos:y_pos+h, x_pos:x_pos+w, c]
+                    else:
+                        cv2.circle(current_frame, (x, y), 10, (0, 0, 0), -1)
+                        cv2.circle(current_frame, (x, y), 15, (0, 0, 0), 2)
+                    
+                    # Добавляем кадр в временный файл
+                    current_frame = cv2.resize(current_frame, (self.render_settings.get('resolution_width', 1920), self.render_settings.get('resolution_height', 1080)))
+                    with open(temp_file.name, 'ab') as f:
+                        f.write(current_frame.tobytes())
+            else:
+                # Если нет данных о фреймах, рисуем имитацию
+                duration = 10  # секунд
+                frame_count = int(duration * fps)
                 
-                # Добавляем кадр в временный файл
-                current_frame = cv2.resize(current_frame, (width, height))
-                with open(temp_file.name, 'ab') as f:
-                    f.write(current_frame.tobytes())
+                for i in range(frame_count):
+                    current_frame = frame.copy()
+                    
+                    x = int(width // 2 + (width // 4) * np.sin(i * 0.05))
+                    y = int(height // 2 + (height // 4) * np.sin(i * 0.03))
+                    
+                    # Рисуем курсор
+                    if cursor_image is not None:
+                        scale = 0.5
+                        resized = cv2.resize(cursor_image, (0, 0), fx=scale, fy=scale)
+                        h, w, _ = resized.shape
+                        y_pos = y - h//2
+                        x_pos = x - w//2
+                        
+                        if y_pos > 0 and y_pos + h < height and x_pos > 0 and x_pos + w < width:
+                            alpha = resized[:, :, 3] / 255.0
+                            for c in range(3):
+                                current_frame[y_pos:y_pos+h, x_pos:x_pos+w, c] = alpha * resized[:, :, c] + (1 - alpha) * current_frame[y_pos:y_pos+h, x_pos:x_pos+w, c]
+                    else:
+                        cv2.circle(current_frame, (x, y), 10, (0, 0, 0), -1)
+                        cv2.circle(current_frame, (x, y), 15, (0, 0, 0), 2)
+                    
+                    # Добавляем кадр в временный файл
+                    current_frame = cv2.resize(current_frame, (self.render_settings.get('resolution_width', 1920), self.render_settings.get('resolution_height', 1080)))
+                    with open(temp_file.name, 'ab') as f:
+                        f.write(current_frame.tobytes())
             
             # Кодируем видео с помощью FFmpeg
             cmd = [
                 'ffmpeg',
                 '-f', 'rawvideo',
                 '-vcodec', 'rawvideo',
-                '-s', f'{width}x{height}',
+                '-s', f"{self.render_settings.get('resolution_width', 1920)}x{self.render_settings.get('resolution_height', 1080)}",
                 '-pix_fmt', 'bgr24',
                 '-r', str(fps),
                 '-i', temp_file.name,

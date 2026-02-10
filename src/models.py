@@ -79,3 +79,4 @@ class ReplayData:
     beatmap_md5: str
     player_id: int
     skin_used: str = DEFAULT_SKIN_NAME  # Имя используемого скина
+    frames: list = None  # Фреймы реплея (координаты курсора, время, клавиши)
