@@ -103,6 +103,61 @@ function Copy-DirectoryContents([string]$SourceDir, [string]$DestDir) {
   }
 }
 
+function Get-SkinRootScore([string]$DirPath) {
+  if (-not $DirPath -or -not (Test-Path -LiteralPath $DirPath)) {
+    return -1
+  }
+
+  $score = 0
+  $probeNames = @(
+    "skin.ini",
+    "cursor.png",
+    "cursortrail.png",
+    "hitcircle.png",
+    "scorebar-bg.png",
+    "menu-background.png",
+    "menu-background.jpg",
+    "default-0.png"
+  )
+
+  foreach ($name in $probeNames) {
+    if (Test-Path -LiteralPath (Join-Path $DirPath $name)) {
+      if ($name -ieq "skin.ini") { $score += 100 } else { $score += 12 }
+    }
+  }
+
+  $topFiles = @(Get-ChildItem -LiteralPath $DirPath -File -Force -ErrorAction SilentlyContinue)
+  $score += [Math]::Min($topFiles.Count, 20)
+  return $score
+}
+
+function Resolve-SkinContentDir([string]$ExtractedDir) {
+  $current = Resolve-FullPath $ExtractedDir
+  if (-not $current) { return $null }
+
+  for ($depth = 0; $depth -lt 6; $depth++) {
+    $subDirs = @(Get-ChildItem -LiteralPath $current -Directory -Force -ErrorAction SilentlyContinue)
+    if ($subDirs.Count -ne 1) { break }
+
+    $child = $subDirs[0].FullName
+    $currentScore = Get-SkinRootScore $current
+    $childScore = Get-SkinRootScore $child
+    $currentTopFiles = @(Get-ChildItem -LiteralPath $current -File -Force -ErrorAction SilentlyContinue)
+
+    $shouldDescend = $false
+    if ($currentTopFiles.Count -eq 0 -and $childScore -ge $currentScore) {
+      $shouldDescend = $true
+    } elseif ($childScore -gt ($currentScore + 8)) {
+      $shouldDescend = $true
+    }
+
+    if (-not $shouldDescend) { break }
+    $current = $child
+  }
+
+  return $current
+}
+
 function New-DirectoryJunctionOrNull([string]$LinkPath, [string]$TargetPath) {
   try {
     if (Test-Path -LiteralPath $LinkPath) {
@@ -396,7 +451,17 @@ try {
     if (Test-Path -LiteralPath $skinTargetDir) {
       Remove-Item -LiteralPath $skinTargetDir -Recurse -Force
     }
-    Copy-DirectoryContents -SourceDir $SkinDir -DestDir $skinTargetDir
+    $resolvedSkinSourceDir = Resolve-SkinContentDir $SkinDir
+    if (-not $resolvedSkinSourceDir) {
+      throw "Failed to resolve extracted skin directory: $SkinDir"
+    }
+    if ($resolvedSkinSourceDir -ne $SkinDir) {
+      Write-Step ("Detected nested skin root; using inner folder: " + $resolvedSkinSourceDir)
+    }
+    Copy-DirectoryContents -SourceDir $resolvedSkinSourceDir -DestDir $skinTargetDir
+    if (-not (Test-Path -LiteralPath (Join-Path $skinTargetDir "skin.ini"))) {
+      Write-Step "Warning: skin.ini not found at resolved skin root. danser may fall back to default textures."
+    }
     Write-Step ("Prepared custom skin for danser: " + $skinName + " (copied to no-space temp dir)")
   }
 

@@ -26,6 +26,11 @@
         if (meta) meta.setAttribute("content", document.documentElement.dataset.theme === "dark" ? "#18191d" : "#0a2b74");
       })();
     </script>
+    <style>
+      /* Prevent logo flash/oversize before main stylesheet is applied */
+      .brand-mark { display: inline-block; width: 52px; height: 52px; overflow: hidden; border-radius: 16px; }
+      .brand-mark img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    </style>
   </head>
   <body>
     <div class="bg-layer" aria-hidden="true">
@@ -37,7 +42,7 @@
     <header class="topbar shell">
       <a class="brand" href="/">
         <span class="brand-mark">
-          <img src="/osu-logo.svg" alt="osu!" />
+          <img src="/osu-logo.svg" alt="osu!" width="52" height="52" />
         </span>
         <span class="brand-copy">
           <strong id="brandTitle">osu! Replay Studio</strong>

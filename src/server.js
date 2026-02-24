@@ -1135,6 +1135,7 @@ app.post(
       const beatmapFile = req.files?.beatmap?.[0];
       const librarySkinId = String(req.body?.librarySkinId || "").trim();
       const libraryBeatmapId = String(req.body?.libraryBeatmapId || "").trim();
+      const hasLibrarySkinSelection = Boolean(librarySkinId);
 
       if (!replayFile) {
         await cleanupIncoming(allFiles);
@@ -1160,10 +1161,10 @@ app.post(
       const addSetupNote = (message) => {
         if (message) jobSetupNotes.push(String(message));
       };
-      const librarySkin = !skinFile && librarySkinId ? store.getSkin(librarySkinId) : null;
+      const librarySkin = hasLibrarySkinSelection ? store.getSkin(librarySkinId) : null;
       const selectedLibraryBeatmap = !beatmapFile && libraryBeatmapId ? store.getBeatmap(libraryBeatmapId) : null;
 
-      if (!skinFile && librarySkinId && !librarySkin) {
+      if (hasLibrarySkinSelection && !librarySkin) {
         await cleanupIncoming(allFiles);
         return res.status(400).json({ error: "Selected library skin not found" });
       }
@@ -1172,9 +1173,16 @@ app.post(
         return res.status(400).json({ error: "Selected library beatmap not found" });
       }
 
+      const localSkinIgnoredBecauseLibrary = Boolean(skinFile && librarySkin);
+      if (localSkinIgnoredBecauseLibrary) {
+        addSetupNote("Both uploaded skin and library skin were provided. Using selected library skin.");
+        await cleanupIncoming([skinFile]);
+      }
+      const effectiveSkinFile = localSkinIgnoredBecauseLibrary ? null : skinFile;
+
       const replay = await promoteUploadedFile(jobId, "replay", replayFile);
-      const skin = skinFile
-        ? await promoteUploadedFile(jobId, "skin", skinFile)
+      const skin = effectiveSkinFile
+        ? await promoteUploadedFile(jobId, "skin", effectiveSkinFile)
         : await copyLibrarySkinToJob(jobId, librarySkin);
 
       let replayInfo = null;
@@ -1235,7 +1243,7 @@ app.post(
 
       let skinPreview = null;
       if (skin?.path) {
-        if (!skinFile && librarySkin?.preview) {
+        if (!effectiveSkinFile && librarySkin?.preview) {
           skinPreview = cloneSkinPreview(librarySkin.preview);
         } else {
           skinPreview = await extractSkinPreview({ jobId, zipPath: skin.path, config });
@@ -1267,7 +1275,7 @@ app.post(
         logs.push({ at: nowIso(), message: `Skin preview extraction failed: ${skinPreview.error}` });
       }
 
-      if (!skinFile && librarySkin) {
+      if (!effectiveSkinFile && librarySkin) {
         logs.push({
           at: nowIso(),
           message: `Using library skin: ${librarySkin.name || librarySkin.file?.originalName || librarySkin.id}`,
