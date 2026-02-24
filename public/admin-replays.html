@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a2a73" />
+    <title>Replay Control Center • Replay Cleanup</title>
+    <link rel="stylesheet" href="/admin.css" />
+  </head>
+  <body data-admin-page="replays">
+    <div class="icloud-scene" aria-hidden="true">
+      <div class="arc arc-a"></div>
+      <div class="arc arc-b"></div>
+      <div class="arc arc-c"></div>
+      <div class="arc arc-d"></div>
+      <div class="scene-vignette"></div>
+    </div>
+
+    <header class="icloud-topbar">
+      <div class="shell topbar-inner">
+        <a class="icloud-brand" href="/admin/panel">
+          <span class="icloud-brand-mark"></span>
+          <span class="icloud-brand-copy">
+            <span class="icloud-brand-logo">Replay Control Center</span>
+            <span class="icloud-brand-sub">Replay Cleanup</span>
+          </span>
+        </a>
+
+        <nav class="admin-module-nav" aria-label="Admin navigation">
+          <a href="/admin/panel" data-admin-nav="panel">Модули</a>
+          <a href="/admin/replays" data-admin-nav="replays">Реплеи</a>
+          <a href="/admin/admins" data-admin-nav="admins">Админы</a>
+          <a href="/admin/settings" data-admin-nav="settings">Настройки</a>
+        </nav>
+
+        <div class="admin-topbar-actions">
+          <div class="lang-switch admin-lang-switch" role="group" aria-label="Language">
+            <button type="button" class="lang-btn" data-admin-lang-option="ru">RU</button>
+            <button type="button" class="lang-btn" data-admin-lang-option="en">EN</button>
+          </div>
+          <span class="status-pill" id="adminSyncBadge">Loading</span>
+          <div class="topbar-meta">
+            <strong id="adminIdentity">Guest</strong>
+            <span class="dot-sep">•</span>
+            <span id="adminRoleBadge">guest</span>
+            <span class="dot-sep">•</span>
+            <span id="adminSessionCompact">no session</span>
+          </div>
+          <button type="button" class="btn btn-subtle small hidden" id="adminLogoutBtn">Выйти</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell page-shell module-page-shell">
+      <section class="module-header panel-card frosted-panel">
+        <div>
+          <p class="eyebrow">Replay Cleanup</p>
+          <h1>Удаление реплеев с сервера</h1>
+          <p class="muted">
+            Отдельная страница модуля очистки. Здесь можно удалять задачи и их артефакты, когда их становится много.
+          </p>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="btn btn-subtle" id="replaysRefreshBtn">Обновить</button>
+        </div>
+      </section>
+
+      <section class="panel-card module-panel">
+        <div class="panel-toolbar">
+          <div class="toolbar-copy">
+            <p class="eyebrow">Queue</p>
+            <h2>Список задач</h2>
+            <p class="muted" id="replaysStatusText">Загрузка...</p>
+          </div>
+          <div class="toolbar-controls">
+            <div class="segmented" role="tablist" aria-label="Replay filter">
+              <button type="button" class="seg-btn is-active" data-replay-filter="all">All</button>
+              <button type="button" class="seg-btn" data-replay-filter="active">Active</button>
+              <button type="button" class="seg-btn" data-replay-filter="completed">Done</button>
+              <button type="button" class="seg-btn" data-replay-filter="failed">Failed</button>
+            </div>
+            <div class="toolbar-stats">
+              <span>Всего: <strong id="replaysTotalCount">0</strong></span>
+              <span>Видимых: <strong id="replaysVisibleCount">0</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flat-list list-pad" id="replaysList" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <script src="/admin-i18n.js"></script>
+    <script src="/admin-pages.js"></script>
+  </body>
+</html>

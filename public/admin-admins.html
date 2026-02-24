@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a2a73" />
+    <title>Replay Control Center • Admins</title>
+    <link rel="stylesheet" href="/admin.css" />
+  </head>
+  <body data-admin-page="admins">
+    <div class="icloud-scene" aria-hidden="true">
+      <div class="arc arc-a"></div>
+      <div class="arc arc-b"></div>
+      <div class="arc arc-c"></div>
+      <div class="arc arc-d"></div>
+      <div class="scene-vignette"></div>
+    </div>
+
+    <header class="icloud-topbar">
+      <div class="shell topbar-inner">
+        <a class="icloud-brand" href="/admin/panel">
+          <span class="icloud-brand-mark"></span>
+          <span class="icloud-brand-copy">
+            <span class="icloud-brand-logo">Replay Control Center</span>
+            <span class="icloud-brand-sub">Admins</span>
+          </span>
+        </a>
+
+        <nav class="admin-module-nav" aria-label="Admin navigation">
+          <a href="/admin/panel" data-admin-nav="panel">Модули</a>
+          <a href="/admin/replays" data-admin-nav="replays">Реплеи</a>
+          <a href="/admin/admins" data-admin-nav="admins">Админы</a>
+          <a href="/admin/settings" data-admin-nav="settings">Настройки</a>
+        </nav>
+
+        <div class="admin-topbar-actions">
+          <div class="lang-switch admin-lang-switch" role="group" aria-label="Language">
+            <button type="button" class="lang-btn" data-admin-lang-option="ru">RU</button>
+            <button type="button" class="lang-btn" data-admin-lang-option="en">EN</button>
+          </div>
+          <span class="status-pill" id="adminSyncBadge">Loading</span>
+          <div class="topbar-meta">
+            <strong id="adminIdentity">Guest</strong>
+            <span class="dot-sep">•</span>
+            <span id="adminRoleBadge">guest</span>
+            <span class="dot-sep">•</span>
+            <span id="adminSessionCompact">no session</span>
+          </div>
+          <button type="button" class="btn btn-subtle small hidden" id="adminLogoutBtn">Выйти</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell page-shell module-page-shell">
+      <section class="module-header panel-card frosted-panel">
+        <div>
+          <p class="eyebrow">Admins</p>
+          <h1>Управление администраторами</h1>
+          <p class="muted">
+            Отдельный модуль для главного администратора. Добавление и удаление админов с хранением в базе данных.
+          </p>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="btn btn-subtle" id="refreshAdminsBtn">Обновить список</button>
+        </div>
+      </section>
+
+      <section class="panel-card module-panel hidden" id="adminsLockedPanel">
+        <div class="locked-panel">
+          <p class="eyebrow">Access</p>
+          <h2>Недостаточно прав</h2>
+          <p class="muted">Этот модуль доступен только для `super_admin`.</p>
+        </div>
+      </section>
+
+      <div id="adminsContent" class="module-two-col hidden">
+        <section class="panel-card module-panel">
+          <div class="panel-toolbar">
+            <div class="toolbar-copy">
+              <p class="eyebrow">Create</p>
+              <h2>Добавить администратора</h2>
+            </div>
+          </div>
+          <form id="createAdminForm" class="stack form-pad">
+            <div class="field-grid">
+              <label class="field-block">
+                <span>Логин</span>
+                <input type="text" id="newAdminUsernameInput" placeholder="newadmin" />
+              </label>
+              <label class="field-block">
+                <span>Пароль</span>
+                <input type="password" id="newAdminPasswordInput" placeholder="Минимум 8 символов" />
+              </label>
+              <label class="field-block">
+                <span>Роль</span>
+                <select id="newAdminRoleSelect">
+                  <option value="admin">admin</option>
+                  <option value="super_admin">super_admin</option>
+                </select>
+              </label>
+            </div>
+            <div id="createAdminStatus" class="status-line" aria-live="polite"></div>
+            <button type="submit" class="btn btn-primary">Создать админа</button>
+          </form>
+        </section>
+
+        <section class="panel-card module-panel">
+          <div class="panel-toolbar">
+            <div class="toolbar-copy">
+              <p class="eyebrow">Directory</p>
+              <h2>Список админов</h2>
+              <p class="muted">Всего: <span id="adminsCount">0</span></p>
+            </div>
+          </div>
+          <div class="flat-list list-pad" id="adminsList" aria-live="polite"></div>
+        </section>
+      </div>
+    </main>
+
+    <script src="/admin-i18n.js"></script>
+    <script src="/admin-pages.js"></script>
+  </body>
+</html>

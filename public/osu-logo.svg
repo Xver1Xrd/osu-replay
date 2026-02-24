@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="osu! logo">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#2048b8"/>
+      <stop offset="52%" stop-color="#183da2"/>
+      <stop offset="100%" stop-color="#112d80"/>
+    </linearGradient>
+    <radialGradient id="shine" cx="24%" cy="18%" r="70%">
+      <stop offset="0%" stop-color="#7db3ff" stop-opacity=".32"/>
+      <stop offset="55%" stop-color="#7db3ff" stop-opacity=".10"/>
+      <stop offset="100%" stop-color="#7db3ff" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="softShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#08143f" flood-opacity=".35"/>
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="64" height="64" rx="8" fill="url(#bg)"/>
+  <rect x="0" y="0" width="64" height="64" rx="8" fill="url(#shine)"/>
+
+  <g filter="url(#softShadow)" fill="none" stroke="#ffffff" stroke-linecap="round">
+    <circle cx="31.5" cy="31.5" r="20.2" stroke-width="3.1" stroke-opacity=".96"/>
+    <path d="M44 14.5 L48.5 10" stroke-width="3.1" stroke-opacity=".96"/>
+    <path d="M48.5 10 L53.5 10.4" stroke-width="3.1" stroke-opacity=".96"/>
+  </g>
+
+  <text
+    x="31.8"
+    y="38.4"
+    fill="#ffffff"
+    font-family="Arial, Helvetica, sans-serif"
+    font-size="16.5"
+    font-weight="700"
+    letter-spacing="-0.4"
+    text-anchor="middle"
+  >osu!</text>
+</svg>

@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a2a73" />
+    <title>Replay Control Center • Настройки сайта</title>
+    <link rel="stylesheet" href="/admin.css" />
+  </head>
+  <body data-admin-page="settings">
+    <div class="icloud-scene" aria-hidden="true">
+      <div class="arc arc-a"></div>
+      <div class="arc arc-b"></div>
+      <div class="arc arc-c"></div>
+      <div class="arc arc-d"></div>
+      <div class="scene-vignette"></div>
+    </div>
+
+    <header class="icloud-topbar">
+      <div class="shell topbar-inner">
+        <a class="icloud-brand" href="/admin/panel">
+          <span class="icloud-brand-mark"></span>
+          <span class="icloud-brand-copy">
+            <span class="icloud-brand-logo">Replay Control Center</span>
+            <span class="icloud-brand-sub">Site Settings</span>
+          </span>
+        </a>
+
+        <nav class="admin-module-nav" aria-label="Admin navigation">
+          <a href="/admin/panel" data-admin-nav="panel">Модули</a>
+          <a href="/admin/replays" data-admin-nav="replays">Реплеи</a>
+          <a href="/admin/admins" data-admin-nav="admins">Админы</a>
+          <a href="/admin/settings" data-admin-nav="settings">Настройки</a>
+        </nav>
+
+        <div class="admin-topbar-actions">
+          <div class="lang-switch admin-lang-switch" role="group" aria-label="Language">
+            <button type="button" class="lang-btn" data-admin-lang-option="ru">RU</button>
+            <button type="button" class="lang-btn" data-admin-lang-option="en">EN</button>
+          </div>
+          <span class="status-pill" id="adminSyncBadge">Loading</span>
+          <div class="topbar-meta">
+            <strong id="adminIdentity">Guest</strong>
+            <span class="dot-sep">•</span>
+            <span id="adminRoleBadge">guest</span>
+            <span class="dot-sep">•</span>
+            <span id="adminSessionCompact">no session</span>
+          </div>
+          <button type="button" class="btn btn-subtle small hidden" id="adminLogoutBtn">Выйти</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell page-shell module-page-shell">
+      <section class="module-header panel-card frosted-panel">
+        <div>
+          <p class="eyebrow">Site Settings</p>
+          <h1>Настройки сайта</h1>
+          <p class="muted">
+            Оставлены только действительно полезные параметры главной страницы и поведения рендера по умолчанию.
+            Лишние текстовые поля скрыты, чтобы панель была чище.
+          </p>
+        </div>
+        <div class="header-actions">
+          <button type="button" class="btn btn-subtle" id="reloadSiteSettingsBtn">Перезагрузить</button>
+        </div>
+      </section>
+
+      <section class="panel-card module-panel hidden" id="siteSettingsLockedPanel">
+        <div class="locked-panel">
+          <p class="eyebrow">Access</p>
+          <h2>Недостаточно прав</h2>
+          <p class="muted">Редактирование настроек сайта доступно только для `super_admin`.</p>
+        </div>
+      </section>
+
+      <section class="panel-card module-panel hidden" id="siteSettingsContent">
+        <div class="panel-toolbar">
+          <div class="toolbar-copy">
+            <p class="eyebrow">Public Config</p>
+            <h2>Главная страница и параметры по умолчанию</h2>
+            <p class="muted" id="siteSettingsUpdatedMeta">Not loaded</p>
+          </div>
+        </div>
+
+        <form id="siteSettingsForm" class="stack form-pad">
+          <div class="field-grid">
+            <label class="field-block wide">
+              <span>Название сайта</span>
+              <input type="text" id="siteTitleInput" maxlength="80" placeholder="osu! Replay Studio" />
+            </label>
+
+            <label class="field-block wide">
+              <span>Заголовок на главной</span>
+              <input
+                type="text"
+                id="heroTitleInput"
+                maxlength="140"
+                placeholder="Рендер реплеев osu! в видео через danser"
+              />
+            </label>
+
+            <label class="field-block wide">
+              <span>Описание на главной</span>
+              <textarea
+                id="heroDescriptionInput"
+                rows="4"
+                maxlength="600"
+                placeholder="Загрузи реплей, скин и карту, настрой параметры danser и получи готовое видео в очереди результатов."
+              ></textarea>
+            </label>
+
+            <label class="field-block">
+              <span>Качество видео по умолчанию</span>
+              <select id="siteDefaultQualitySelect">
+                <option value="low">720p / 30fps</option>
+                <option value="medium">1080p / 60fps</option>
+                <option value="high">1440p / 60fps</option>
+                <option value="ultra">4K / 60fps</option>
+              </select>
+            </label>
+
+            <label class="switch-row wide">
+              <input type="checkbox" id="uploadsEnabledInput" />
+              <span class="switch-ui" aria-hidden="true"></span>
+              <span class="switch-copy">
+                <strong>Разрешить новые загрузки</strong>
+                <small>Отключи, если нужно временно остановить создание новых задач на сайте.</small>
+              </span>
+            </label>
+          </div>
+
+          <div id="siteSettingsStatus" class="status-line" aria-live="polite"></div>
+          <button type="submit" class="btn btn-primary">Сохранить настройки</button>
+        </form>
+      </section>
+    </main>
+
+    <script src="/admin-i18n.js"></script>
+    <script src="/admin-pages.js"></script>
+  </body>
+</html>

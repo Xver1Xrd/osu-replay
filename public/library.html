@@ -1,0 +1,254 @@
+﻿<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a2b74" />
+    <title>Library - osu! Replay Studio</title>
+    <script>
+      (() => {
+        try {
+          const raw = localStorage.getItem("osuReplaySiteTheme");
+          document.documentElement.dataset.theme = raw === "dark" ? "dark" : "light";
+        } catch {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+    <link rel="stylesheet" id="siteStylesheet" href="/styles.css" />
+    <script>
+      (() => {
+        if (document.documentElement.dataset.theme === "dark") {
+          const link = document.getElementById("siteStylesheet");
+          if (link) link.href = "/styles-dark.css";
+        }
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", document.documentElement.dataset.theme === "dark" ? "#18191d" : "#0a2b74");
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="bg-layer" aria-hidden="true">
+      <div class="bg-glow bg-glow-a"></div>
+      <div class="bg-glow bg-glow-b"></div>
+      <div class="bg-grain"></div>
+    </div>
+
+    <header class="topbar shell">
+      <a class="brand" href="/">
+        <span class="brand-mark">
+          <img src="/osu-logo.svg" alt="osu!" />
+        </span>
+        <span class="brand-copy">
+          <strong id="libraryBrandTitle">osu! Replay Studio</strong>
+          <small id="libraryBrandSubtitle">Asset library</small>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="Site">
+        <a class="nav-link" href="/">Studio</a>
+        <a class="nav-link is-active" href="/library">Library</a>
+        <a class="nav-link" href="/admin">Admin</a>
+      </nav>
+
+      <div class="topbar-meta">
+        <div class="lang-switch theme-switch" role="group" aria-label="Theme">
+          <button type="button" class="lang-btn" data-theme-option="dark">Dark</button>
+          <button type="button" class="lang-btn" data-theme-option="light">Light</button>
+        </div>
+        <div class="lang-switch" role="group" aria-label="Language">
+          <button type="button" class="lang-btn" data-lang-option="ru">RU</button>
+          <button type="button" class="lang-btn" data-lang-option="en">EN</button>
+        </div>
+        <span class="sync-pill" id="librarySyncBadge">Loading...</span>
+        <button type="button" class="btn btn-subtle" id="libraryRefreshBtn">Refresh</button>
+      </div>
+    </header>
+
+    <main class="shell studio-shell library-page-shell">
+      <section class="library-hero-plain" aria-labelledby="libraryPageTitle">
+        <div class="library-hero-copy">
+          <p class="eyebrow">Library</p>
+          <h1 id="libraryPageTitle">Р‘РёР±Р»РёРѕС‚РµРєР° СЂРµСЃСѓСЂСЃРѕРІ</h1>
+        </div>
+
+        <div class="library-tab-switch-wrap">
+          <div class="segmented library-segmented" role="tablist" aria-label="Library type">
+            <button
+              type="button"
+              class="seg-btn is-active"
+              id="libraryTabSkinsBtn"
+              data-library-tab="skins"
+              role="tab"
+              aria-selected="true"
+            >
+              Skins
+            </button>
+            <button
+              type="button"
+              class="seg-btn"
+              id="libraryTabBeatmapsBtn"
+              data-library-tab="beatmaps"
+              role="tab"
+              aria-selected="false"
+            >
+              Beatmaps
+            </button>
+          </div>
+          <span class="badge" id="libraryActiveTabBadge">Skins</span>
+        </div>
+
+        <p class="library-tab-help" id="libraryTabHelp">
+          РЎРѕС…СЂР°РЅСЏР№ СЃРєРёРЅС‹ Рё РєР°СЂС‚С‹ РІ Р±РёР±Р»РёРѕС‚РµРєСѓ, С‡С‚РѕР±С‹ РїРѕС‚РѕРј Р±С‹СЃС‚СЂРѕ РІС‹Р±РёСЂР°С‚СЊ РёС… РЅР° РіР»Р°РІРЅРѕР№ СЃС‚СЂР°РЅРёС†Рµ.
+        </p>
+      </section>
+
+      <section id="librarySkinsView" class="library-view" data-library-view="skins">
+        <section class="matte-panel skin-library-panel library-collection-panel">
+          <div class="pane-head library-collection-head">
+            <div>
+              <p class="eyebrow">Collection</p>
+              <h2 id="librarySkinsCollectionTitle">Р‘РёР±Р»РёРѕС‚РµРєР° СЃРєРёРЅРѕРІ</h2>
+            </div>
+            <span class="badge" id="skinsCountBadge">0 skins</span>
+          </div>
+
+          <div class="library-inline-upload">
+            <div class="library-inline-upload-copy">
+              <p class="eyebrow">Upload</p>
+              <h3 id="librarySkinsUploadTitle">Р”РѕР±Р°РІРёС‚СЊ СЃРєРёРЅ</h3>
+              <p class="library-inline-upload-note" id="skinLibraryFileMeta">
+                РђСЂС…РёРІ Р±СѓРґРµС‚ СЃРѕС…СЂР°РЅС‘РЅ РІ Р±РёР±Р»РёРѕС‚РµРєСѓ Рё РїРѕР»СѓС‡РёС‚ РїСЂРµРІСЊСЋ
+              </p>
+            </div>
+
+            <form id="skinLibraryForm" class="skin-upload-form library-inline-upload-form" enctype="multipart/form-data">
+              <label class="field-block">
+                <span id="skinLibraryNameLabel">РќР°Р·РІР°РЅРёРµ СЃРєРёРЅР° (РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</span>
+                <input
+                  type="text"
+                  id="skinLibraryNameInput"
+                  name="name"
+                  maxlength="120"
+                  placeholder="My Tournament Skin"
+                />
+              </label>
+
+              <label class="file-row required">
+                <input type="file" id="skinLibraryFileInput" name="skin" accept=".zip,.osk" required />
+                <span class="file-row-kind">Skin (.zip / .osk)</span>
+                <span class="file-row-meta">РђСЂС…РёРІ Р±СѓРґРµС‚ СЃРѕС…СЂР°РЅС‘РЅ РІ Р±РёР±Р»РёРѕС‚РµРєСѓ Рё РїРѕР»СѓС‡РёС‚ РїСЂРµРІСЊСЋ</span>
+                <span class="file-row-state" id="skinLibraryFileState">Choose file</span>
+              </label>
+
+              <div class="library-inline-upload-actions">
+                <div id="skinLibraryStatus" class="status-line" aria-live="polite"></div>
+                <button class="btn btn-primary" id="skinLibrarySubmitBtn" type="submit">Save To Library</button>
+              </div>
+            </form>
+          </div>
+
+          <div id="skinLibraryGrid" class="skin-library-grid" aria-live="polite"></div>
+        </section>
+      </section>
+
+      <section id="libraryBeatmapsView" class="library-view hidden" data-library-view="beatmaps">
+        <section class="matte-panel skin-library-panel library-collection-panel">
+          <div class="pane-head library-collection-head">
+            <div>
+              <p class="eyebrow">Collection</p>
+              <h2 id="libraryBeatmapsCollectionTitle">Р‘РёР±Р»РёРѕС‚РµРєР° РєР°СЂС‚</h2>
+            </div>
+            <span class="badge" id="beatmapsCountBadge">0 beatmaps</span>
+          </div>
+
+          <div class="library-inline-upload">
+            <div class="library-inline-upload-copy">
+              <p class="eyebrow">Upload</p>
+              <h3 id="libraryBeatmapsUploadTitle">Р”РѕР±Р°РІРёС‚СЊ beatmap</h3>
+              <p class="library-inline-upload-note" id="beatmapLibraryFileMeta">
+                РљР°СЂС‚Р° Р±СѓРґРµС‚ СЃРѕС…СЂР°РЅРµРЅР° РІ РєСЌС€ Рё РґРѕСЃС‚СѓРїРЅР° РґР»СЏ РїРѕРІС‚РѕСЂРЅРѕРіРѕ СЂРµРЅРґРµСЂР°
+              </p>
+            </div>
+
+            <form id="beatmapLibraryForm" class="skin-upload-form library-inline-upload-form" enctype="multipart/form-data">
+              <label class="field-block">
+                <span id="beatmapLibraryNameLabel">РќР°Р·РІР°РЅРёРµ РєР°СЂС‚С‹ (РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</span>
+                <input
+                  type="text"
+                  id="beatmapLibraryNameInput"
+                  name="name"
+                  maxlength="180"
+                  placeholder="Street - Hestia (Mapset)"
+                />
+              </label>
+
+              <label class="file-row required">
+                <input type="file" id="beatmapLibraryFileInput" name="beatmap" accept=".osz,.osu,.zip" required />
+                <span class="file-row-kind">Beatmap (.osz / .osu / .zip)</span>
+                <span class="file-row-meta">РљР°СЂС‚Р° Р±СѓРґРµС‚ СЃРѕС…СЂР°РЅРµРЅР° РІ РєСЌС€ Рё РґРѕСЃС‚СѓРїРЅР° РґР»СЏ РїРѕРІС‚РѕСЂРЅРѕРіРѕ СЂРµРЅРґРµСЂР°</span>
+                <span class="file-row-state" id="beatmapLibraryFileState">Choose file</span>
+              </label>
+
+              <div class="library-inline-upload-actions">
+                <div id="beatmapLibraryStatus" class="status-line" aria-live="polite"></div>
+                <button class="btn btn-primary" id="beatmapLibrarySubmitBtn" type="submit">Save To Library</button>
+              </div>
+            </form>
+          </div>
+
+          <div id="beatmapLibraryGrid" class="skin-library-grid beatmap-library-grid" aria-live="polite"></div>
+        </section>
+      </section>
+    </main>
+
+    <section id="skinDetailModal" class="library-modal hidden" aria-hidden="true">
+      <div id="skinDetailModalBackdrop" class="library-modal-backdrop"></div>
+      <div id="skinDetailModalPanel" class="library-modal-panel" role="dialog" aria-modal="true" aria-labelledby="skinDetailTitle">
+        <div class="library-modal-head">
+          <div class="library-modal-head-copy">
+            <p class="eyebrow">Skin card</p>
+            <h2 id="skinDetailTitle">Skin</h2>
+            <p id="skinDetailSub" class="library-modal-sub"></p>
+          </div>
+          <button id="skinDetailCloseBtn" type="button" class="btn btn-subtle library-modal-close">Close</button>
+        </div>
+
+        <div class="library-modal-body">
+          <div id="skinDetailStatus" class="status-line" aria-live="polite"></div>
+
+          <div id="skinDetailMainPreview" class="skin-detail-main-preview"></div>
+          <div id="skinDetailGalleryGrid" class="skin-detail-gallery-grid"></div>
+
+          <div class="skin-detail-admin-bar">
+            <p id="skinDetailAdminHint" class="skin-detail-admin-hint"></p>
+          </div>
+
+          <div id="skinDetailAdminPanel" class="skin-detail-admin-panel hidden">
+            <form id="skinDetailPhotoForm" class="skin-upload-form skin-detail-photo-form" enctype="multipart/form-data">
+              <label class="file-row required">
+                <input type="file" id="skinDetailPhotoInput" name="photo" accept=".png,.jpg,.jpeg,.webp" />
+                <span class="file-row-kind">Preview photo (.png / .jpg / .webp)</span>
+                <span class="file-row-meta">Up to 3 photos per skin. Choose the main photo for the card.</span>
+                <span class="file-row-state" id="skinDetailPhotoFileState">Choose file</span>
+              </label>
+              <div class="library-inline-upload-actions">
+                <div id="skinDetailPhotoStatus" class="status-line" aria-live="polite"></div>
+                <button id="skinDetailPhotoSubmitBtn" class="btn btn-primary" type="submit">Add photo</button>
+              </div>
+            </form>
+
+            <div class="skin-detail-admin-actions">
+              <button id="skinDetailDeleteSkinBtn" type="button" class="btn btn-subtle btn-danger">Delete skin</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script src="/theme.js"></script>
+    <script src="/i18n.js"></script>
+    <script src="/library.js"></script>
+  </body>
+</html>
+

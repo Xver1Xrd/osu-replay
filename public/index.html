@@ -1,0 +1,420 @@
+﻿<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a2b74" />
+    <title>osu! Replay Studio</title>
+    <script>
+      (() => {
+        try {
+          const raw = localStorage.getItem("osuReplaySiteTheme");
+          document.documentElement.dataset.theme = raw === "dark" ? "dark" : "light";
+        } catch {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+    <link rel="stylesheet" id="siteStylesheet" href="/styles.css" />
+    <script>
+      (() => {
+        if (document.documentElement.dataset.theme === "dark") {
+          const link = document.getElementById("siteStylesheet");
+          if (link) link.href = "/styles-dark.css";
+        }
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", document.documentElement.dataset.theme === "dark" ? "#18191d" : "#0a2b74");
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="bg-layer" aria-hidden="true">
+      <div class="bg-glow bg-glow-a"></div>
+      <div class="bg-glow bg-glow-b"></div>
+      <div class="bg-grain"></div>
+    </div>
+
+    <header class="topbar shell">
+      <a class="brand" href="/">
+        <span class="brand-mark">
+          <img src="/osu-logo.svg" alt="osu!" />
+        </span>
+        <span class="brand-copy">
+          <strong id="brandTitle">osu! Replay Studio</strong>
+          <small id="brandSubtitle">Загрузка реплеев и очередь рендера</small>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="Site">
+        <a class="nav-link is-active" href="/">Studio</a>
+        <a class="nav-link" href="/library">Library</a>
+        <a class="nav-link" href="/admin">Admin</a>
+      </nav>
+
+      <div class="topbar-meta">
+        <div class="lang-switch theme-switch" role="group" aria-label="Theme">
+          <button type="button" class="lang-btn" data-theme-option="dark">Dark</button>
+          <button type="button" class="lang-btn" data-theme-option="light">Light</button>
+        </div>
+        <div class="lang-switch" role="group" aria-label="Language">
+          <button type="button" class="lang-btn" data-lang-option="ru">RU</button>
+          <button type="button" class="lang-btn" data-lang-option="en">EN</button>
+        </div>
+        <span class="sync-pill" id="syncBadge">Syncing...</span>
+        <button type="button" class="btn btn-subtle" id="refreshBtn">Refresh</button>
+      </div>
+    </header>
+
+    <main class="shell studio-shell">
+      <section id="siteAnnouncement" class="announcement-panel matte-panel hidden" aria-live="polite"></section>
+
+      <section class="studio-header matte-panel">
+        <div class="header-copy">
+          <p class="eyebrow">Upload + Queue</p>
+          <h1 id="heroTitle">Рендер реплеев osu! в видео через danser</h1>
+          <p id="heroDescription">
+            Загрузи реплей, скин и карту, настрой параметры danser и получи готовое видео в очереди результатов.
+          </p>
+        </div>
+
+        <div class="header-stats">
+          <div class="stat-row"><span>Total</span><strong id="metricTotal">0</strong></div>
+          <div class="stat-row"><span>Active</span><strong id="metricProcessing">0</strong></div>
+          <div class="stat-row"><span>Done</span><strong id="metricCompleted">0</strong></div>
+          <div class="stat-row"><span>Failed</span><strong id="metricFailed">0</strong></div>
+          <div class="stat-row full"><span>Queue</span><strong id="queueStatusText">Loading...</strong></div>
+          <div class="stat-row full"><span>Last update</span><strong id="lastUpdated">-</strong></div>
+        </div>
+      </section>
+
+      <section class="studio-grid">
+        <section class="composer-pane matte-panel" aria-labelledby="uploadTitle">
+          <div class="pane-head">
+            <div>
+              <p class="eyebrow">Composer</p>
+              <h2 id="uploadTitle">Новый рендер</h2>
+            </div>
+            <span class="badge">SQLite</span>
+          </div>
+
+          <form id="uploadForm" class="composer-form" enctype="multipart/form-data">
+            <div class="composer-top-row">
+              <label class="field-block composer-title-field">
+                <span>Название (необязательно)</span>
+                <input type="text" id="titleInput" name="title" maxlength="120" placeholder="Tournament clip / DT practice" />
+              </label>
+
+              <div class="file-stack">
+              <label class="file-row required">
+                <input type="file" id="replayInput" name="replay" accept=".osr" required />
+                <span class="file-row-kind">Replay (.osr)</span>
+                <span class="file-row-meta">Обязательно</span>
+                <span class="file-row-state" id="replayFileState">Choose file</span>
+              </label>
+
+              <label class="file-row">
+                <input type="file" id="skinInput" name="skin" accept=".zip,.osk" />
+                <span class="file-row-kind">Skin (.zip / .osk)</span>
+                <span class="file-row-meta">Опционально, будет извлечено превью</span>
+                <span class="file-row-state" id="skinFileState">Optional</span>
+              </label>
+
+              <section class="library-skin-picker matte-subpanel" aria-label="Skin library selection">
+                <div class="library-skin-picker-head">
+                  <div>
+                    <span class="library-skin-label">Библиотека скинов</span>
+                    <small class="library-skin-sub" id="librarySkinHint">Выбери сохранённый скин или загрузи ZIP выше.</small>
+                  </div>
+                  <a class="library-skin-link" href="/library?tab=skins">Открыть</a>
+                </div>
+                <select id="librarySkinSelect" name="librarySkinId">
+                  <option value="">Без библиотечного скина</option>
+                </select>
+              </section>
+
+              <label class="file-row">
+                <input type="file" id="beatmapInput" name="beatmap" accept=".osz,.osu,.zip" />
+                <span class="file-row-kind">Beatmap (.osz / .osu / .zip)</span>
+                <span class="file-row-meta">Опционально, но желательно</span>
+                <span class="file-row-state" id="beatmapFileState">Optional</span>
+              </label>
+
+              <section class="library-skin-picker library-beatmap-picker matte-subpanel" aria-label="Beatmap library selection">
+                <div class="library-skin-picker-head">
+                  <div>
+                    <span class="library-skin-label" id="libraryBeatmapLabel">Библиотека карт</span>
+                    <small class="library-skin-sub" id="libraryBeatmapHint">Выбери сохранённую карту или загрузи .osz выше.</small>
+                  </div>
+                  <a class="library-skin-link" id="libraryBeatmapOpenLink" href="/library?tab=beatmaps">Открыть</a>
+                </div>
+                <select id="libraryBeatmapSelect" name="libraryBeatmapId">
+                  <option value="">Без библиотечной карты</option>
+                </select>
+              </section>
+              </div>
+            </div>
+
+            <details class="advanced-settings matte-subpanel">
+              <summary>
+                <div class="advanced-settings-heading">
+                  <p class="eyebrow">Replay Settings</p>
+                  <h3>Геймплей / Скин / Курсор / Другое</h3>
+                  <p class="advanced-settings-meta">
+                    Скрыто по умолчанию, чтобы composer оставался компактным. Открой для тонкой настройки danser.
+                  </p>
+                </div>
+                <div class="advanced-settings-summary">
+                  <span class="badge">danser</span>
+                  <span class="advanced-settings-chevron" aria-hidden="true"></span>
+                </div>
+              </summary>
+
+              <div class="advanced-settings-body">
+                <section class="settings-section replay-presets-panel">
+                  <h4>Пресеты</h4>
+                  <p class="settings-section-note">Сохраняй наборы настроек рендера и быстро применяй их для следующих реплеев.</p>
+                  <div class="replay-presets-grid">
+                    <label class="field-block replay-presets-select">
+                      <span>Сохранённые пресеты</span>
+                      <select id="replayPresetSelect">
+                        <option value="">Без пресета</option>
+                      </select>
+                    </label>
+                    <label class="field-block replay-presets-name">
+                      <span>Название нового пресета</span>
+                      <input type="text" id="replayPresetNameInput" maxlength="80" placeholder="Tournament HD clean" />
+                    </label>
+                  </div>
+                  <div class="replay-presets-actions">
+                    <button type="button" class="btn btn-subtle" id="replayPresetApplyBtn">Применить</button>
+                    <button type="button" class="btn btn-subtle" id="replayPresetDeleteBtn">Удалить</button>
+                    <button type="button" class="btn btn-primary" id="replayPresetSaveBtn">Сохранить текущие</button>
+                  </div>
+                  <div id="replayPresetStatus" class="status-line" aria-live="polite"></div>
+                </section>
+
+                <div class="quick-settings-grid" aria-label="Studio quick settings">
+                  <details class="settings-section settings-fold" open>
+                    <summary>
+                      <div class="settings-fold-title">
+                        <h4>Статус черновика</h4>
+                        <p>Текущий выбор файлов и итоговых параметров перед отправкой.</p>
+                      </div>
+                      <span class="settings-fold-chevron" aria-hidden="true"></span>
+                    </summary>
+                    <div class="settings-fold-body">
+                      <div class="draft-summary settings-embed">
+                        <div class="draft-row"><span>Replay</span><strong id="draftReplayText">Not selected</strong></div>
+                        <div class="draft-row"><span>Skin</span><strong id="draftSkinText">Optional</strong></div>
+                        <div class="draft-row"><span>Beatmap</span><strong id="draftBeatmapText">Optional</strong></div>
+                        <div class="draft-row"><span>Quality</span><strong id="draftQualityText">1080p / 60fps</strong></div>
+                        <div class="draft-row"><span>Music / Hitsounds</span><strong id="draftAudioText">100% / 100%</strong></div>
+                      </div>
+                    </div>
+                  </details>
+
+                  <details class="settings-section settings-fold" open>
+                    <summary>
+                      <div class="settings-fold-title">
+                        <h4>Skin Preview</h4>
+                        <p>Draft attachment state и мгновенное превью выбранного скина.</p>
+                      </div>
+                      <span class="settings-fold-chevron" aria-hidden="true"></span>
+                    </summary>
+                    <div class="settings-fold-body">
+                      <section class="skin-draft settings-embed" aria-label="Draft skin preview">
+                        <div class="skin-draft-head">
+                          <div>
+                            <p class="eyebrow">Skin Preview</p>
+                            <h3>Draft attachment state</h3>
+                          </div>
+                          <span class="badge" id="draftSkinTag">No skin</span>
+                        </div>
+                        <div class="skin-draft-frame" id="draftSkinFrame">
+                          <p>Реальное превью скина появится здесь сразу после выбора ZIP или из библиотеки.</p>
+                        </div>
+                      </section>
+                    </div>
+                  </details>
+
+                  <details class="settings-section settings-fold" open>
+                    <summary>
+                      <div class="settings-fold-title">
+                        <h4>Качество видео</h4>
+                        <p>Быстрый выбор профиля записи.</p>
+                      </div>
+                      <span class="settings-fold-chevron" aria-hidden="true"></span>
+                    </summary>
+                    <div class="settings-fold-body">
+                      <label class="field-block">
+                        <span>Качество видео</span>
+                        <select id="videoQualitySelect" name="videoQuality">
+                          <option value="low">720p / 30fps</option>
+                          <option value="medium" selected>1080p / 60fps</option>
+                          <option value="high">1440p / 60fps</option>
+                          <option value="ultra">4K / 60fps</option>
+                        </select>
+                      </label>
+                    </div>
+                  </details>
+
+                  <details class="settings-section settings-fold" open>
+                    <summary>
+                      <div class="settings-fold-title">
+                        <h4>Громкость музыки</h4>
+                        <p>Уровень музыки в финальном видео.</p>
+                      </div>
+                      <span class="settings-fold-chevron" aria-hidden="true"></span>
+                    </summary>
+                    <div class="settings-fold-body">
+                      <div class="range-stack settings-embed">
+                        <div class="range-row">
+                          <label for="musicVolumeInput">Громкость музыки</label>
+                          <strong id="musicVolumeValue">100%</strong>
+                        </div>
+                        <input type="range" id="musicVolumeInput" name="musicVolume" min="0" max="200" value="100" />
+                      </div>
+                    </div>
+                  </details>
+
+                  <details class="settings-section settings-fold" open>
+                    <summary>
+                      <div class="settings-fold-title">
+                        <h4>Громкость хитсаундов</h4>
+                        <p>Уровень hit sounds в финальном видео.</p>
+                      </div>
+                      <span class="settings-fold-chevron" aria-hidden="true"></span>
+                    </summary>
+                    <div class="settings-fold-body">
+                      <div class="range-stack settings-embed">
+                        <div class="range-row">
+                          <label for="hitsoundVolumeInput">Громкость хитсаундов</label>
+                          <strong id="hitsoundVolumeValue">100%</strong>
+                        </div>
+                        <input type="range" id="hitsoundVolumeInput" name="hitsoundVolume" min="0" max="200" value="100" />
+                      </div>
+                    </div>
+                  </details>
+
+                </div>
+
+                <section class="settings-section">
+                  <h4>Геймплей</h4>
+                  <div class="toggle-grid">
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showHitbar" checked /> <span>Показывать хитбар</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showUnstableRate" checked /> <span>Показывать Unstable Rate</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showScore" checked /> <span>Показывать счёт</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showHpBar" checked /> <span>Показывать полоску HP</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showComboCounter" checked /> <span>Показывать счётчик комбо</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showPpCounter" checked /> <span>Показывать счётчик PP</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showKeyOverlay" checked /> <span>Показывать нажатия</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showLeaderboard" checked /> <span>Показывать лидерборд</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showLeaderboardAvatars" /> <span>Отображать аватары игроков в лидерборде</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showBoundaries" checked /> <span>Показывать рамки</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showMods" checked /> <span>Показывать моды</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showResultsScreen" checked /> <span>Показывать экран результатов</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showHitCounter" checked /> <span>Показывать счётчик попаданий (100/50/промахи)</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showSliderBreaks" /> <span>Показывать слайдербрейки</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showAimErrorMeter" /> <span>Показывать счётчик ошибок наводки</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="gameplay_showStrainGraph" checked /> <span>Показать график напряженности</span></label>
+                  </div>
+                </section>
+
+                <section class="settings-section">
+                  <h4>Настройки скина</h4>
+                  <div class="toggle-grid">
+                    <label class="toggle-item"><input type="checkbox" name="skin_useSkinCursor" /> <span>Использовать курсор скина</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="skin_useSkinHitsounds" /> <span>Использовать хитсаунды скина</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="skin_useSkinComboColors" /> <span>Использовать цвета комбо скина</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="skin_useBeatmapComboColors" /> <span>Использовать цвета комбо карты</span></label>
+                  </div>
+                </section>
+
+                <section class="settings-section">
+                  <h4>Курсор / предпоказ поведения</h4>
+                  <p class="settings-note">Параметры размера/волны/следа вступают в силу, только если выключено «Использовать курсор скина».</p>
+                  <div class="toggle-grid">
+                    <label class="toggle-item"><input type="checkbox" name="cursor_ripples" /> <span>Волны от курсора</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="cursor_trail" checked /> <span>След от курсора</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="cursor_rainbow" checked /> <span>Эффект радуги</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="cursor_trailGlow" checked /> <span>Свечение следа от курсора</span></label>
+                  </div>
+                  <label class="settings-range">
+                    <span class="settings-range-head">
+                      <span>Размер курсора</span>
+                      <strong id="cursorSizeValue">100%</strong>
+                    </span>
+                    <input type="range" id="cursorSizeInput" name="cursor_size" min="25" max="300" value="100" step="1" />
+                  </label>
+                </section>
+
+                <section class="settings-section">
+                  <h4>Другие настройки</h4>
+                  <div class="toggle-grid">
+                    <label class="toggle-item"><input type="checkbox" name="other_seizureWarning" checked /> <span>Предупреждение о возможном эпилептическом припадке перед геймплеем</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="other_loadStoryboards" checked /> <span>Загружать сториборд</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="other_loadVideos" /> <span>Загружать видео</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="other_skipIntro" /> <span>Пропустить начало</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="other_bgParallax" checked /> <span>Параллакс фона</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="other_showDanserLogo" checked /> <span>Показывать логотип danser в начале</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="other_playNightcoreHitsounds" checked /> <span>Воспроизводить хитсаунды Nightcore</span></label>
+                    <label class="toggle-item"><input type="checkbox" name="other_ignoreReplayFail" /> <span>Игнорировать Fail реплея</span></label>
+                  </div>
+
+                  <div class="dim-grid">
+                    <label class="settings-range">
+                      <span>Затемнение фона: Начало</span>
+                      <input type="range" name="other_bgDimIntro" min="0" max="1" step="0.01" value="0" />
+                    </label>
+                    <label class="settings-range">
+                      <span>Затемнение фона: Во время игры</span>
+                      <input type="range" name="other_bgDimNormal" min="0" max="1" step="0.01" value="0.95" />
+                    </label>
+                    <label class="settings-range">
+                      <span>Затемнение фона: Во время пауз</span>
+                      <input type="range" name="other_bgDimBreaks" min="0" max="1" step="0.01" value="0.5" />
+                    </label>
+                  </div>
+                </section>
+              </div>
+            </details>
+
+            <div id="formStatus" class="status-line" aria-live="polite"></div>
+            <button id="submitBtn" class="btn btn-primary" type="submit">Queue Replay Render</button>
+          </form>
+        </section>
+
+        <section class="queue-pane matte-panel" aria-labelledby="queueTitle">
+          <div class="pane-head queue-head">
+            <div>
+              <p class="eyebrow">Queue</p>
+              <h2 id="queueTitle">Очередь и результаты</h2>
+            </div>
+            <div class="segmented" role="tablist" aria-label="Queue filter">
+              <button type="button" class="seg-btn is-active" data-filter="all">All</button>
+              <button type="button" class="seg-btn" data-filter="active">Active</button>
+              <button type="button" class="seg-btn" data-filter="completed">Done</button>
+              <button type="button" class="seg-btn" data-filter="failed">Failed</button>
+            </div>
+          </div>
+
+          <section class="queue-spotlight matte-subpanel" aria-live="polite">
+            <p class="eyebrow">Replay Snapshot</p>
+            <h3 id="spotlightTitle">No replay yet</h3>
+            <p id="spotlightText">Upload a replay to see parsed player/mods/score/accuracy summary here.</p>
+            <div class="tag-line" id="spotlightChips"></div>
+          </section>
+
+          <div id="jobsList" class="queue-list" aria-live="polite"></div>
+        </section>
+      </section>
+
+      <footer class="site-footer-note" aria-label="Credits">made by xverlxrd</footer>
+    </main>
+
+    <script src="/theme.js"></script>
+    <script src="/i18n.js"></script>
+    <script src="/app.js"></script>
+  </body>
+</html>
+

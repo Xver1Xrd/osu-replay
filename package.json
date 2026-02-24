@@ -1,0 +1,17 @@
+{
+  "name": "osu-replay-render-site",
+  "version": "1.0.0",
+  "description": "Web app for uploading osu! replays and rendering them into videos with optional custom skin support.",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node src/server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "extract-zip": "^2.0.1",
+    "multer": "^1.4.5-lts.1"
+  }
+}

@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a2a73" />
+    <title>Replay Control Center</title>
+    <link rel="stylesheet" href="/admin.css" />
+  </head>
+  <body data-admin-page="panel">
+    <div class="icloud-scene" aria-hidden="true">
+      <div class="arc arc-a"></div>
+      <div class="arc arc-b"></div>
+      <div class="arc arc-c"></div>
+      <div class="arc arc-d"></div>
+      <div class="scene-vignette"></div>
+    </div>
+
+    <header class="icloud-topbar">
+      <div class="shell topbar-inner">
+        <a class="icloud-brand" href="/admin/panel">
+          <span class="icloud-brand-mark"></span>
+          <span class="icloud-brand-copy">
+            <span class="icloud-brand-logo">Replay Control Center</span>
+            <span class="icloud-brand-sub">Module Hub</span>
+          </span>
+        </a>
+
+        <nav class="admin-module-nav" aria-label="Admin navigation">
+          <a href="/admin/panel" data-admin-nav="panel">Модули</a>
+          <a href="/admin/replays" data-admin-nav="replays">Реплеи</a>
+          <a href="/admin/admins" data-admin-nav="admins">Админы</a>
+          <a href="/admin/settings" data-admin-nav="settings">Настройки</a>
+        </nav>
+
+        <div class="admin-topbar-actions">
+          <div class="lang-switch admin-lang-switch" role="group" aria-label="Language">
+            <button type="button" class="lang-btn" data-admin-lang-option="ru">RU</button>
+            <button type="button" class="lang-btn" data-admin-lang-option="en">EN</button>
+          </div>
+          <span class="status-pill" id="adminSyncBadge">Loading</span>
+          <div class="topbar-meta">
+            <strong id="adminIdentity">Guest</strong>
+            <span class="dot-sep">•</span>
+            <span id="adminRoleBadge">guest</span>
+            <span class="dot-sep">•</span>
+            <span id="adminSessionCompact">no session</span>
+          </div>
+          <button type="button" class="btn btn-subtle small hidden" id="adminLogoutBtn">Выйти</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell page-shell admin-hub-shell">
+      <section class="panel-card frosted-panel hero-panel">
+        <div class="hero-panel-copy">
+          <p class="eyebrow">Control Hub</p>
+          <h1>Выбор модулей администратора</h1>
+          <p class="muted">
+            Отдельная страница панели. Здесь только выбор модулей и краткая сводка по очереди, без длинных описаний и старой карточки session.
+          </p>
+        </div>
+        <div class="hero-panel-side">
+          <div class="pill-metric">
+            <span>Пользователь</span>
+            <strong id="panelAdminLabel">Проверка...</strong>
+          </div>
+          <div class="pill-metric">
+            <span>Последний sync</span>
+            <strong id="panelLastSync">-</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="module-grid" aria-label="Admin modules">
+        <a class="module-card panel-card" href="/admin/replays">
+          <span class="module-icon icon-replays" aria-hidden="true"></span>
+          <div class="module-copy">
+            <h2>Replay Cleanup</h2>
+            <p>Удаление реплеев и артефактов с сервера с фильтрами по статусам очереди.</p>
+          </div>
+          <span class="module-link">Открыть</span>
+        </a>
+
+        <a class="module-card panel-card" href="/admin/admins">
+          <span class="module-icon icon-admins" aria-hidden="true"></span>
+          <div class="module-copy">
+            <h2>Admins</h2>
+            <p>Создание и удаление администраторов. Управление доступами для `super_admin`.</p>
+          </div>
+          <span class="module-link">Открыть</span>
+        </a>
+
+        <a class="module-card panel-card" href="/admin/settings">
+          <span class="module-icon icon-settings" aria-hidden="true"></span>
+          <div class="module-copy">
+            <h2>Site Settings</h2>
+            <p>Публичные настройки сайта, баннер, hero, качество по умолчанию и включение загрузок.</p>
+          </div>
+          <span class="module-link">Открыть</span>
+        </a>
+
+        <a class="module-card panel-card" href="/">
+          <span class="module-icon icon-home" aria-hidden="true"></span>
+          <div class="module-copy">
+            <h2>Studio</h2>
+            <p>Переход обратно на главную страницу загрузки реплеев и просмотра очереди.</p>
+          </div>
+          <span class="module-link">Открыть</span>
+        </a>
+      </section>
+
+      <section class="kpi-grid" aria-label="Queue overview">
+        <div class="kpi-card panel-card">
+          <span>Всего задач</span>
+          <strong id="panelJobsTotal">0</strong>
+        </div>
+        <div class="kpi-card panel-card">
+          <span>Активных</span>
+          <strong id="panelJobsActive">0</strong>
+        </div>
+        <div class="kpi-card panel-card">
+          <span>Готово</span>
+          <strong id="panelJobsDone">0</strong>
+        </div>
+        <div class="kpi-card panel-card">
+          <span>Ошибки</span>
+          <strong id="panelJobsFailed">0</strong>
+        </div>
+      </section>
+    </main>
+
+    <script src="/admin-i18n.js"></script>
+    <script src="/admin-pages.js"></script>
+  </body>
+</html>

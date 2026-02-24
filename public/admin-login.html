@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a2a73" />
+    <title>Replay Control Center Login</title>
+    <link rel="stylesheet" href="/admin.css" />
+  </head>
+  <body data-admin-page="login">
+    <div class="icloud-scene" aria-hidden="true">
+      <div class="arc arc-a"></div>
+      <div class="arc arc-b"></div>
+      <div class="arc arc-c"></div>
+      <div class="arc arc-d"></div>
+      <div class="scene-vignette"></div>
+    </div>
+
+    <header class="icloud-topbar admin-login-topbar">
+      <div class="shell topbar-inner">
+        <a class="icloud-brand" href="/admin/login">
+          <span class="icloud-brand-mark"></span>
+          <span class="icloud-brand-copy">
+            <span class="icloud-brand-logo">Replay Control Center</span>
+            <span class="icloud-brand-sub">Admin Sign In</span>
+          </span>
+        </a>
+        <div class="topbar-center">
+          <span class="status-pill" id="adminSyncBadge">Session check</span>
+        </div>
+        <div class="topbar-actions">
+          <div class="lang-switch admin-lang-switch" role="group" aria-label="Language">
+            <button type="button" class="lang-btn" data-admin-lang-option="ru">RU</button>
+            <button type="button" class="lang-btn" data-admin-lang-option="en">EN</button>
+          </div>
+          <a class="topbar-link" href="/">Studio</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="shell admin-page-shell login-shell">
+      <section class="login-card panel-card frosted-panel apple-login-card">
+        <div class="apple-login-header">
+          <div class="apple-login-mark" aria-hidden="true">
+            <div class="apple-login-ring"></div>
+            <div class="apple-login-core">RC</div>
+          </div>
+          <p class="eyebrow">Admin Access</p>
+          <h1>Вход администратора</h1>
+          <p class="muted">Авторизуйтесь, чтобы открыть панель управления рендерами, пользователями и настройками сайта.</p>
+        </div>
+
+        <form id="adminLoginForm" class="stack compact apple-login-form" autocomplete="on">
+          <label class="field-block">
+            <span>Логин</span>
+            <input
+              type="text"
+              id="adminUsernameInput"
+              autocomplete="username"
+              placeholder="Введите логин"
+              value="xverlxrd"
+            />
+          </label>
+
+          <label class="field-block">
+            <span>Пароль</span>
+            <input
+              type="password"
+              id="adminPasswordInput"
+              autocomplete="current-password"
+              placeholder="Введите пароль"
+              value="LenovoG55%"
+            />
+          </label>
+
+          <div id="adminLoginStatus" class="status-line apple-login-status" aria-live="polite"></div>
+
+          <div class="apple-login-actions">
+            <button type="submit" class="btn apple-login-submit">Войти</button>
+            <a class="apple-login-secondary" href="/">Перейти в Studio</a>
+          </div>
+        </form>
+
+        <p class="apple-login-footnote">Доступ только для администраторов. Все действия в панели журналируются.</p>
+      </section>
+    </main>
+
+    <script src="/admin-i18n.js"></script>
+    <script src="/admin-pages.js"></script>
+  </body>
+</html>

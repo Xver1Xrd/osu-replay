@@ -1,0 +1,114 @@
+﻿<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a2b74" />
+    <title>Skin Library - osu! Replay Studio</title>
+    <script>
+      (() => {
+        try {
+          const raw = localStorage.getItem("osuReplaySiteTheme");
+          document.documentElement.dataset.theme = raw === "dark" ? "dark" : "light";
+        } catch {
+          document.documentElement.dataset.theme = "light";
+        }
+      })();
+    </script>
+    <link rel="stylesheet" id="siteStylesheet" href="/styles.css" />
+    <script>
+      (() => {
+        if (document.documentElement.dataset.theme === "dark") {
+          const link = document.getElementById("siteStylesheet");
+          if (link) link.href = "/styles-dark.css";
+        }
+        const meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", document.documentElement.dataset.theme === "dark" ? "#18191d" : "#0a2b74");
+      })();
+    </script>
+  </head>
+  <body>
+    <div class="bg-layer" aria-hidden="true">
+      <div class="bg-glow bg-glow-a"></div>
+      <div class="bg-glow bg-glow-b"></div>
+      <div class="bg-grain"></div>
+    </div>
+
+    <header class="topbar shell">
+      <a class="brand" href="/">
+        <span class="brand-mark">
+          <img src="/osu-logo.svg" alt="osu!" />
+        </span>
+        <span class="brand-copy">
+          <strong id="skinsBrandTitle">Replay Studio</strong>
+          <small>Personal skin library</small>
+        </span>
+      </a>
+
+      <nav class="topnav" aria-label="Site">
+        <a class="nav-link" href="/">Studio</a>
+        <a class="nav-link is-active" href="/skins">Skins</a>
+        <a class="nav-link" href="/admin">Admin</a>
+      </nav>
+
+      <div class="topbar-meta">
+        <div class="lang-switch theme-switch" role="group" aria-label="Theme">
+          <button type="button" class="lang-btn" data-theme-option="dark">Dark</button>
+          <button type="button" class="lang-btn" data-theme-option="light">Light</button>
+        </div>
+        <div class="lang-switch" role="group" aria-label="Language">
+          <button type="button" class="lang-btn" data-lang-option="ru">RU</button>
+          <button type="button" class="lang-btn" data-lang-option="en">EN</button>
+        </div>
+        <span class="sync-pill" id="skinsSyncBadge">Loading...</span>
+        <button type="button" class="btn btn-subtle" id="skinsRefreshBtn">Refresh</button>
+      </div>
+    </header>
+
+    <main class="shell studio-shell skins-page-shell">
+      <section class="matte-panel skin-upload-panel">
+        <div class="pane-head">
+          <div>
+            <p class="eyebrow">Library Upload</p>
+            <h2>Р”РѕР±Р°РІРёС‚СЊ СЃРєРёРЅ</h2>
+          </div>
+          <span class="badge" id="skinsCountBadge">0 skins</span>
+        </div>
+
+        <form id="skinLibraryForm" class="skin-upload-form" enctype="multipart/form-data">
+          <label class="field-block">
+            <span>РќР°Р·РІР°РЅРёРµ СЃРєРёРЅР° (РЅРµРѕР±СЏР·Р°С‚РµР»СЊРЅРѕ)</span>
+            <input type="text" id="skinLibraryNameInput" name="name" maxlength="120" placeholder="My Tournament Skin" />
+          </label>
+
+          <label class="file-row required">
+            <input type="file" id="skinLibraryFileInput" name="skin" accept=".zip,.osk" required />
+            <span class="file-row-kind">Skin (.zip / .osk)</span>
+            <span class="file-row-meta">РђСЂС…РёРІ Р±СѓРґРµС‚ СЃРѕС…СЂР°РЅС‘РЅ РІ Р±РёР±Р»РёРѕС‚РµРєСѓ Рё РїРѕР»СѓС‡РёС‚ РїСЂРµРІСЊСЋ</span>
+            <span class="file-row-state" id="skinLibraryFileState">Choose file</span>
+          </label>
+
+          <div id="skinLibraryStatus" class="status-line" aria-live="polite"></div>
+          <button class="btn btn-primary" id="skinLibrarySubmitBtn" type="submit">Save To Library</button>
+        </form>
+      </section>
+
+      <section class="matte-panel skin-library-panel">
+        <div class="pane-head">
+          <div>
+            <p class="eyebrow">Collection</p>
+            <h2>Р‘РёР±Р»РёРѕС‚РµРєР° СЃРєРёРЅРѕРІ</h2>
+          </div>
+          <span class="badge">Cards</span>
+        </div>
+
+        <div id="skinLibraryGrid" class="skin-library-grid" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <script src="/theme.js"></script>
+    <script src="/i18n.js"></script>
+    <script src="/skins.js"></script>
+  </body>
+</html>
+

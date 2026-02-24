@@ -1,0 +1,42 @@
+node_modules/
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Runtime data and generated assets
+data/*
+!data/.gitkeep
+data/*.db
+data/*.db-*
+data/jobs.json
+
+uploads/*
+!uploads/.gitkeep
+
+output/*
+!output/.gitkeep
+
+temp/*
+!temp/.gitkeep
+
+# Local tools / binaries (danser, archives, ffmpeg bundles)
+tools/*
+!tools/.gitkeep
+
+# Logs / pid files
+*.log
+*.pid
+*-pid.txt
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
